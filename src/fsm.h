@@ -170,6 +170,12 @@ namespace fsm {
         void add_transition_rule(const State& current_state, T symbol, const State& next_state);
 
         /**
+         * Returns the index at which a given state resides.
+         * @param State &st: The state for which the FSM is queried.
+         */
+        unsigned indexOfState(const fsm::State& st) const;
+
+        /**
          * Takes an input and transitions the state of the machine
          * to the next state according to the to the transition table.
          * @param T input: A symbol from the FSM's alphabet.
@@ -239,12 +245,6 @@ namespace fsm {
          */
         void restart();
     private:
-
-        /**
-         * Returns the index at which a given state resides.
-         * @param State &st: The state for which the FSM is queried.
-         */
-        unsigned indexOfState(const fsm::State& st) const;
 
         /**
          * Validates that there are no duplicated states.

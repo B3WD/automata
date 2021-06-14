@@ -280,9 +280,14 @@ void fsm::FSM<T>::validate_final_states() const {
 template <typename T>
 bool fsm::FSM<T>::evaluate(const char* input) {
     fsm::String word(input);
+    unsigned ofset = 0;
+
+    if (typeid(T) == typeid(int)) {
+        ofset = '0';
+    }
 
     for(int i = 0, l = word.size(); i < l; i++){
-        FSM::transition(word[i] - '0'); // convert char to int
+        FSM::transition(word[i] - ofset);
     }
 
     bool flag = FSM::is_in_final_state();
@@ -384,11 +389,36 @@ std::ostream &fsm::FSM<T>::ins(std::ostream &out) const {
     auto table = get_transition_table();
     fsm::State st;
 
+    for (int i = 0; i < alphaC; i++) {
+        out << "\t" << alphabet_[i];
+    }
+
+    out << "\n";
+
     for(int i = 0; i < stateC; i++){
-        out << states_[i] << " | ";
+
+        st = states_[i];
+
+        if (i == 0) {
+            std::cout << '^';
+        }
+        else {
+            std::cout << ' ';
+        }
+
+        if (std::find(final_states_.begin(), final_states_.end(), st) != final_states_.end()) {
+            std::cout << '*';
+        }
+        else {
+            std::cout << ' ';
+        }
+
+        out << st.get_name() << " | ";
+
         for(int j = 0; j < alphaC; j++){
             st = table[i][j];
-            out << st << "\t";
+            
+            out << st.get_name() << "\t";
         }
         out << "\n";
     }
@@ -400,11 +430,17 @@ template <typename T>
 std::ostream& fsm::FSM<T>::fins(std::ostream& out) const {
     int stateC = get_states_count(), alphaC = get_alphabet_count(), endSC = get_final_states_count();
     fsm::State st;
+    unsigned ofset = 0;
 
     out << alphaC;
 
+    if (typeid(T) == typeid(int)) {
+        ofset = '0';
+    }
+
     for (int i = 0; i < alphaC; i++) {
-        out << " " << alphabet_[i] - '0';
+        out << " " << char(alphabet_[i] + ofset);
+        //out << " " << alphabet_[i] + ofset;
     }
 
     out << "\n" << stateC;
@@ -432,11 +468,76 @@ std::ostream& fsm::FSM<T>::fins(std::ostream& out) const {
     return out;
 }
 
+//template <typename T>
+//std::istream& fsm::FSM<T>::ext(std::istream& in) {
+//    unsigned int stateCount, alphaCount, endStateCount;
+//    fsm::String stateName;
+//    T letter;
+//
+//    if (typeid(in) == typeid(std::ifstream)) {
+//        std::cout.setstate(std::ios_base::failbit);
+//    }
+//
+//     Bug: If states are added before symbols, the
+//     transition table does not resize.
+//
+//    std::cout << "Enter the number of letters: ";
+//    in >> alphaCount;
+//
+//    for (int i = 0; i < alphaCount; i++) {
+//        std::cout << "\nEnter letter " << i << " : ";
+//        in >> letter;
+//        add_symbol(letter);
+//    }
+//
+//    std::cout << "\nEnter the number of states: ";
+//    in >> stateCount;
+//
+//    for (int i = 0; i < stateCount; i++) {
+//        std::cout << "\nEnter the name of state " << i << " : ";
+//        in >> stateName;
+//        add_state(fsm::State(stateName)); // tuk moje da ima problemi s anon object :(
+//    }
+//
+//    for (int i = 0; i < stateCount; i++) {
+//        for (int j = 0; j < alphaCount; j++) {
+//            std::cout << "\nWhere does " << states_[i] << " go with letter \"" << char(alphabet_[j]) << "\" ?: ";
+//            in >> stateName;
+//            add_transition_rule(states_[i], alphabet_[j], states_[indexOfState(fsm::State(stateName))]);
+//        }
+//    }
+//
+//    std::cout << "\nEnter the starting state: ";
+//    in >> stateName;
+//    initial_state_ = states_[indexOfState(fsm::State(stateName))];
+//
+//    std::cout << "\nEnter the number of end-states: ";
+//    in >> endStateCount;
+//
+//    for (int i = 0; i < endStateCount; i++) {
+//        std::cout << "\nEnter name of end-state " << i << " : ";
+//        in >> stateName;
+//        add_final_state(states_[indexOfState(fsm::State(stateName))]);
+//    }
+//
+//    current_state_ = &initial_state_;
+//
+//    validate_states();
+//    validate_initial_state();
+//    validate_final_states();
+//
+//    std::cout.clear();
+//    return in;
+//}
+
 template <typename T>
 std::istream& fsm::FSM<T>::ext(std::istream& in) {
+
+    fsm::FSM<T> newMach;
+
     unsigned int stateCount, alphaCount, endStateCount;
     fsm::String stateName;
-    char letter;
+    T letter;
 
     if (typeid(in) == typeid(std::ifstream)) {
         std::cout.setstate(std::ios_base::failbit);
@@ -451,7 +552,7 @@ std::istream& fsm::FSM<T>::ext(std::istream& in) {
     for (int i = 0; i < alphaCount; i++) {
         std::cout << "\nEnter letter " << i << " : ";
         in >> letter;
-        add_symbol(letter);
+        newMach.add_symbol(letter);
     }
 
     std::cout << "\nEnter the number of states: ";
@@ -460,20 +561,24 @@ std::istream& fsm::FSM<T>::ext(std::istream& in) {
     for (int i = 0; i < stateCount; i++) {
         std::cout << "\nEnter the name of state " << i << " : ";
         in >> stateName;
-        add_state(fsm::State(stateName)); // tuk moje da ima problemi s anon object :(
+        newMach.add_state(fsm::State(stateName)); // tuk moje da ima problemi s anon object :(
     }
+
+    auto newStates = newMach.get_states();
+    auto newAlpha = newMach.get_alphabet();
 
     for (int i = 0; i < stateCount; i++) {
         for (int j = 0; j < alphaCount; j++) {
-            std::cout << "\nWhere does " << states_[i] << " go with letter \"" << char(alphabet_[j]) << "\" ?: ";
+            // std::cout << "\nWhere does " << states_[i] << " go with letter \"" << char(alphabet_[j]) << "\" ?: ";
+            std::cout << "\nWhere does " << newStates[i] << " go with letter \"" << newAlpha[j] << "\" ?: ";
             in >> stateName;
-            add_transition_rule(states_[i], alphabet_[j], states_[indexOfState(fsm::State(stateName))]);
+            newMach.add_transition_rule(newStates[i], newAlpha[j], newStates[newMach.indexOfState(fsm::State(stateName))]);
         }
     }
 
     std::cout << "\nEnter the starting state: ";
     in >> stateName;
-    initial_state_ = states_[indexOfState(fsm::State(stateName))];
+    newMach.set_initial_state(newStates[newMach.indexOfState(fsm::State(stateName))]);
 
     std::cout << "\nEnter the number of end-states: ";
     in >> endStateCount;
@@ -481,14 +586,17 @@ std::istream& fsm::FSM<T>::ext(std::istream& in) {
     for (int i = 0; i < endStateCount; i++) {
         std::cout << "\nEnter name of end-state " << i << " : ";
         in >> stateName;
-        add_final_state(states_[indexOfState(fsm::State(stateName))]);
+        newMach.add_final_state(newStates[newMach.indexOfState(fsm::State(stateName))]);
     }
 
-    current_state_ = &initial_state_;
+    newMach.restart();
 
-    validate_states();
-    validate_initial_state();
-    validate_final_states();
+    newMach.validate_states();
+    newMach.validate_initial_state();
+    newMach.validate_final_states();
+
+    *this = newMach;
+    //delete initial_state_;
 
     std::cout.clear();
     return in;

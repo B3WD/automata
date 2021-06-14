@@ -172,15 +172,144 @@ void t7() {
     std::cout << m2 << std::endl;
 }
 
+template <typename T>
+void loadMachine(fsm::FSM<T>& m1) {
+    char fileName[21];
+    unsigned option;
+
+    do {
+        std::cout << "1. Load machine from .txt file.\n";
+        std::cout << "2. Make machine from console.\n";
+        std::cout << "Choose option: ";
+        std::cin >> option;
+    } while (option > 2);
+   
+    if (option == 1) {
+        std::cout << "\nEnter name of .txt file: ";
+        std::cin >> fileName;
+
+        m1.fromTXT(fileName);
+    }
+    else if (option == 2) {
+
+        std::cout << "\n";
+        std::cin >> m1;
+    }
+}
+
+template <typename T>
+void saveFile(fsm::FSM<T>& m) {
+    char fileName[21];
+    std::cout << "Enter name of the save file: ";
+    std::cin >> fileName;
+
+    m.toTXT(fileName);
+}
+
+template <typename T>
+void recogWord(fsm::FSM<T>& m) {
+    char word[21];
+
+    std::cout << "Enter word: ";
+    std::cin >> word;
+
+    if (m.evaluate(word)) {
+        std::cout << word << " is reccognised my the machine! :)\n";
+    }
+    else {
+        std::cout << word << " is NOT reccognised my the machine.\n";
+    }
+}
+
+template <typename T>
+void userIO() {
+    unsigned option = 1;
+    fsm::FSM<T> m1, m2;
+
+    loadMachine(m1);
+
+    while (option) {
+        std::cout << "\n======================\n\n";
+        std::cout << "1. Load another machine.\n";
+        std::cout << "2. Evaluate word.\n";
+        std::cout << "3. Make complement.\n";
+        std::cout << "4. Make union.\n";
+        std::cout << "5. Make intersection.\n";
+        std::cout << "6. Print on console.\n";
+        std::cout << "7. Save to file.\n";
+        std::cout << "0. Exit.\n";
+        std::cout << "Choose option: ";
+        std::cin >> option;
+
+        switch (option)
+        {
+        case 0:
+            break;
+        case 1:
+            std::cout << "\n======================\n\n";
+            loadMachine(m1);
+            break;
+        case 2:
+            std::cout << "\n";
+            recogWord(m1);
+            break;
+        case 3:
+            m1 = !m1;
+            break;
+        case 4:
+            std::cout << "\n======================\n\n";
+            std::cout << "Enter second machine.\n";
+            loadMachine(m2);
+            m1 = m1 | m2;
+            break;
+        case 5:
+            std::cout << "\n======================\n\n";
+            std::cout << "Enter second machine.\n";
+            loadMachine(m2);
+            m1 = m1 & m2;
+            break;
+        case 6:
+            std::cout << "\n" << m1;
+            break;
+        case 7:
+            saveFile(m1);
+            break;
+        default:
+            std::cout << "Invalid option! ;(\n";
+            break;
+        }
+    }
+}
+
+void demo() {
+    
+    unsigned option;
+    std::cout << "======== Menu ========\n";
+    do {
+        std::cout << "1. Int.\n";
+        std::cout << "2. Char.\n";
+        std::cout << "Choose data type for the machine: ";
+        std::cin >> option;
+    } while (option > 2);
+
+    std::cout << "\n======================\n\n";
+
+    if (option == 1) { userIO<int>(); }
+    if (option == 2) { userIO<char>(); }
+
+}
+
 int main() {
 
-    t1();
-    t2();
-    t3();
-    t4();
-    //t5();
-    t6();
-    t7();
+    //t1();
+    //t2();
+    //t3();
+    //t4();
+    ////t5();
+    //t6();
+    //t7();
+    demo();
+
 
     return 0;
 }
