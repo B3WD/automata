@@ -399,7 +399,7 @@ std::ostream &fsm::FSM<T>::ins(std::ostream &out) const {
 
         st = states_[i];
 
-        if (i == 0) {
+        if (st == initial_state_) {
             std::cout << '^';
         }
         else {
@@ -440,7 +440,6 @@ std::ostream& fsm::FSM<T>::fins(std::ostream& out) const {
 
     for (int i = 0; i < alphaC; i++) {
         out << " " << char(alphabet_[i] + ofset);
-        //out << " " << alphabet_[i] + ofset;
     }
 
     out << "\n" << stateC;
