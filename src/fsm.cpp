@@ -5,17 +5,19 @@
 #include "fsm.h"
 #include "automation_exception.h"
 
-fsm::FSM::FSM() {
+template <typename T>
+fsm::FSM<T>::FSM() {
 
 }
 
-fsm::FSM::FSM(const std::vector<fsm::State> &states, 
-    const std::vector<int> &alphabet, 
+template <typename T>
+fsm::FSM<T>::FSM(const std::vector<fsm::State> &states,
+    const std::vector<T> &alphabet,
     const fsm::State &initial_state,
-    const std::vector<fsm::State> &final_states, 
+    const std::vector<fsm::State> &final_states,
     const std::vector<std::vector<fsm::State>> &transition_table)
         : states_(states),
-    alphabet_(alphabet), 
+    alphabet_(alphabet),
     initial_state_(initial_state),
     final_states_(final_states),
     transition_table_(transition_table)
@@ -26,24 +28,26 @@ fsm::FSM::FSM(const std::vector<fsm::State> &states,
     validate_final_states();
 }
 
-// fsm::FSM::FSM(const fsm::String& destPath)
-fsm::FSM::FSM(const char* destPath)
+template <typename T>
+fsm::FSM<T>::FSM(const char* destPath)
 {
     std::ifstream f(destPath);
     f >> *this;
 }
 
-fsm::FSM::FSM(const fsm::FSM& rhs)
-    : states_(rhs.states_), 
-    alphabet_(rhs.alphabet_), 
+template <typename T>
+fsm::FSM<T>::FSM(const fsm::FSM<T>& rhs)
+    : states_(rhs.states_),
+    alphabet_(rhs.alphabet_),
     initial_state_(rhs.initial_state_),
-    final_states_(rhs.final_states_), 
+    final_states_(rhs.final_states_),
     transition_table_(rhs.transition_table_)
 {
     current_state_ = &states_[indexOfState(*rhs.current_state_)];
 }
 
-fsm::FSM& fsm::FSM::operator=(const fsm::FSM& rhs)
+template <typename T>
+fsm::FSM<T>& fsm::FSM<T>::operator=(const fsm::FSM<T>& rhs)
 {
     if (this != &rhs) {
         states_ = rhs.states_;
@@ -58,83 +62,102 @@ fsm::FSM& fsm::FSM::operator=(const fsm::FSM& rhs)
     return *this;
 }
 
-fsm::FSM::~FSM() = default;
+template <typename T>
+fsm::FSM<T>::~FSM() = default;
 //    delete [] current_state_;
 //};
 
-int fsm::FSM::get_states_count() const {
+template <typename T>
+int fsm::FSM<T>::get_states_count() const {
     return states_.size();
 }
 
-const std::vector<fsm::State> &fsm::FSM::get_states() const {
+template <typename T>
+const std::vector<fsm::State> &fsm::FSM<T>::get_states() const {
     return states_;
 }
 
-void fsm::FSM::set_states(const std::vector<fsm::State> &states) {
+template <typename T>
+void fsm::FSM<T>::set_states(const std::vector<fsm::State> &states) {
     states_ = states;
 }
 
-int fsm::FSM::get_alphabet_count() const {
+template <typename T>
+int fsm::FSM<T>::get_alphabet_count() const {
     return alphabet_.size();
 }
 
-const std::vector<int> &fsm::FSM::get_alphabet() const {
+template <typename T>
+const std::vector<T> &fsm::FSM<T>::get_alphabet() const {
     return alphabet_;
 }
 
-void fsm::FSM::set_alphabet(const std::vector<int> &alphabet) {
+template <typename T>
+void fsm::FSM<T>::set_alphabet(const std::vector<T> &alphabet) {
     alphabet_ = alphabet;
 }
 
-const fsm::State &fsm::FSM::get_initial_state() const {
+template <typename T>
+const fsm::State &fsm::FSM<T>::get_initial_state() const {
     return initial_state_;
 }
 
-void fsm::FSM::set_initial_state(const fsm::State &initialState) {
+template <typename T>
+void fsm::FSM<T>::set_initial_state(const fsm::State &initialState) {
     initial_state_ = initialState;
 }
 
-int fsm::FSM::get_final_states_count() const {
+template <typename T>
+int fsm::FSM<T>::get_final_states_count() const {
     return final_states_.size();
 }
 
-const std::vector<fsm::State> &fsm::FSM::get_final_states() const {
+template <typename T>
+const std::vector<fsm::State> &fsm::FSM<T>::get_final_states() const {
     return final_states_;
 }
 
-void fsm::FSM::set_final_states(const std::vector<fsm::State> &final_states) {
+template <typename T>
+void fsm::FSM<T>::set_final_states(const std::vector<fsm::State> &final_states) {
     final_states_ = final_states;
 }
 
-const std::vector<std::vector<fsm::State>> &fsm::FSM::get_transition_table() const {
+template <typename T>
+const std::vector<std::vector<fsm::State>> &fsm::FSM<T>::get_transition_table() const {
     return transition_table_;
 }
 
-void fsm::FSM::set_transition_table(const std::vector<std::vector<fsm::State>> &transition_table) {
+template <typename T>
+void fsm::FSM<T>::set_transition_table(const std::vector<std::vector<fsm::State>> &transition_table) {
     transition_table_ = transition_table;
 }
 
-fsm::State fsm::FSM::get_current_state() const {
+template <typename T>
+fsm::State fsm::FSM<T>::get_current_state() const {
     return *current_state_;
 }
 
-void fsm::FSM::add_state(const fsm::State &state) {
+template <typename T>
+void fsm::FSM<T>::add_state(const fsm::State &state) {
     states_.push_back(state);
     transition_table_.emplace_back(alphabet_.size());
 }
 
-void fsm::FSM::add_symbol(int symbol) {
+template <typename T>
+void fsm::FSM<T>::add_symbol(T symbol) {
     alphabet_.push_back(symbol);
     for (std::vector<fsm::State> row : transition_table_) {
         row.resize(row.size() + 1);
     }
 }
 
-void fsm::FSM::add_final_state(const fsm::State &state) {
+template <typename T>
+void fsm::FSM<T>::add_final_state(const fsm::State &state) {
     final_states_.push_back(state);
 }
 
-void fsm::FSM::add_transition_rule(const fsm::State &state, int symbol, const fsm::State &next_state) {
+template <typename T>
+void fsm::FSM<T>::add_transition_rule(const fsm::State &state, T symbol, const fsm::State &next_state) {
     int row = 0, column = 0;
     for (; row < states_.size(); row++) {
         if (states_[row] == state) {
@@ -154,7 +177,8 @@ void fsm::FSM::add_transition_rule(const fsm::State &state, int symbol, const fs
     transition_table_[row][column] = next_state;
 }
 
-void fsm::FSM::transition(int input) {
+template <typename T>
+void fsm::FSM<T>::transition(T input) {
     int row = 0, column = 0;
     for (; row < states_.size(); row++) {
         if (states_[row] == *current_state_) {
@@ -174,25 +198,27 @@ void fsm::FSM::transition(int input) {
     current_state_ = &transition_table_[row][column];
 }
 
-unsigned fsm::FSM::indexOfState(const fsm::State& st) const
-{
+template <typename T>
+unsigned fsm::FSM<T>::indexOfState(const fsm::State& st) const {
     unsigned i = 0;
 
     while (i < states_.size() - 1 && !(states_[i] == st)) {
         i++;
     }
-    
+
     return i;
 }
 
-bool fsm::FSM::is_in_final_state() const {
+template <typename T>
+bool fsm::FSM<T>::is_in_final_state() const {
     if (std::find(final_states_.begin(), final_states_.end(), *current_state_) != final_states_.end()) {
        return true;
     }
     return false;
 }
 
-fsm::FSM fsm::FSM::fromTXT(const char* sourcePath)
+template <typename T>
+fsm::FSM<T> fsm::FSM<T>::fromTXT(const char* sourcePath)
 {
     std::ifstream inF(sourcePath);
     inF >> *this;
@@ -201,18 +227,21 @@ fsm::FSM fsm::FSM::fromTXT(const char* sourcePath)
     return *this;
 }
 
-void fsm::FSM::toTXT(const char* dest) const
+template <typename T>
+void fsm::FSM<T>::toTXT(const char* dest) const
 {
     std::ofstream outF(dest);
     outF << *this;
     outF.close();
 }
 
-void fsm::FSM::restart() {
+template <typename T>
+void fsm::FSM<T>::restart() {
     current_state_ = &initial_state_;
 }
 
-void fsm::FSM::validate_states() const {
+template <typename T>
+void fsm::FSM<T>::validate_states() const {
     std::set<fsm::String> uniq_states;
     for (const State& state : states_) {
         uniq_states.insert(state.get_name());
@@ -222,7 +251,8 @@ void fsm::FSM::validate_states() const {
     }
 }
 
-void fsm::FSM::validate_initial_state() const {
+template <typename T>
+void fsm::FSM<T>::validate_initial_state() const {
     for (const State& state : states_) {
         if (state == initial_state_) {
             return;
@@ -231,7 +261,8 @@ void fsm::FSM::validate_initial_state() const {
     throw AutomationException("Initial state is not a valid state", __FILE__, __LINE__);
 }
 
-void fsm::FSM::validate_final_states() const {
+template <typename T>
+void fsm::FSM<T>::validate_final_states() const {
     for (const State& final_state : final_states_) {
         bool missing = true;
         for (const State &state : states_) {
@@ -246,7 +277,8 @@ void fsm::FSM::validate_final_states() const {
     }
 }
 
-bool fsm::FSM::evaluate(const char* input) {
+template <typename T>
+bool fsm::FSM<T>::evaluate(const char* input) {
     fsm::String word(input);
 
     for(int i = 0, l = word.size(); i < l; i++){
@@ -259,9 +291,10 @@ bool fsm::FSM::evaluate(const char* input) {
     return flag;
 }
 
-fsm::FSM fsm::FSM::operator!() const {
+template <typename T>
+fsm::FSM<T> fsm::FSM<T>::operator!() const {
     std::vector<fsm::State> newFinalStates;
-    fsm::FSM complementMachine = *this;
+    fsm::FSM<T> complementMachine = *this;
 
     for(int i = 0, sz = get_states_count(); i < sz; i++){
         if(std::find(final_states_.begin(),final_states_.end(),states_[i]) == final_states_.end()){
@@ -274,15 +307,19 @@ fsm::FSM fsm::FSM::operator!() const {
     return complementMachine;
 }
 
-fsm::FSM fsm::FSM::operator|(const fsm::FSM &rhs) const {
-    fsm::FSM unionMachine, thisMachine = *this, otherMachine = rhs;
+template <typename T>
+fsm::FSM<T> fsm::FSM<T>::operator|(const fsm::FSM<T> &rhs) const {
+    fsm::FSM<T> unionMachine, thisMachine = *this, otherMachine = rhs;
     thisMachine.restart();
     otherMachine.restart();
 
     fsm::State comboState = thisMachine.get_initial_state() + otherMachine.get_initial_state();  // Get the initial state.
 
     auto alphabet = get_alphabet();
-    for(int i = 0, sz = get_alphabet_count(); i < sz; i++) { unionMachine.add_symbol(alphabet[i]); }  // Add the alphabet.
+    // Add the alphabet.
+    for (int i = 0, sz = get_alphabet_count(); i < sz; i++) {
+      unionMachine.add_symbol(alphabet[i]);
+    }
     unionMachine.add_state(comboState);
 
     fsm::fill(thisMachine, otherMachine, unionMachine, comboState);
@@ -293,8 +330,9 @@ fsm::FSM fsm::FSM::operator|(const fsm::FSM &rhs) const {
     return unionMachine;
 }
 
-void fsm::fill(fsm::FSM m1, fsm::FSM m2, fsm::FSM &m3, fsm::State prevState) {
-    for(int i = 0, sz = m1.get_alphabet_count(); i < sz; i++){
+template <typename T>
+void fsm::fill(fsm::FSM<T> m1, fsm::FSM<T> m2, fsm::FSM<T> &m3, fsm::State prevState) {
+    for (int i = 0, sz = m1.get_alphabet_count(); i < sz; i++) {
         auto m1old = m1, m2old = m2;
         auto m3States = m3.get_states();
         char currLetter = m3.get_alphabet()[i];
@@ -304,10 +342,10 @@ void fsm::fill(fsm::FSM m1, fsm::FSM m2, fsm::FSM &m3, fsm::State prevState) {
 
         fsm::State comboState = m1.get_current_state() + m2.get_current_state();
 
-        if(std::find(m3States.begin(), m3States.end(), comboState) == m3States.end()){
+        if (std::find(m3States.begin(), m3States.end(), comboState) == m3States.end()){
             m3.add_state(comboState);
-            if(m1.is_in_final_state() || m2.is_in_final_state()) { 
-                m3.add_final_state(comboState); 
+            if (m1.is_in_final_state() || m2.is_in_final_state()) {
+                m3.add_final_state(comboState);
             }
             fsm::fill(m1, m2, m3, comboState);
         }
@@ -317,9 +355,10 @@ void fsm::fill(fsm::FSM m1, fsm::FSM m2, fsm::FSM &m3, fsm::State prevState) {
     }
 }
 
-fsm::FSM fsm::FSM::operator&(const fsm::FSM &rhs) const {
+template <typename T>
+fsm::FSM<T> fsm::FSM<T>::operator&(const fsm::FSM<T> &rhs) const {
     std::vector<fsm::State> newEndStates;
-    fsm::FSM unionMachine = *this | rhs;
+    fsm::FSM<T> unionMachine = *this | rhs;
     auto thisFinalStates = get_final_states();  // get sub-final states
     auto otherFinalStates = rhs.get_final_states(); // get sub-final states
     auto unionEndStates = unionMachine.get_final_states();
@@ -333,13 +372,14 @@ fsm::FSM fsm::FSM::operator&(const fsm::FSM &rhs) const {
         }
     }
 
-    fsm::FSM intersectionMachine = unionMachine;
+    fsm::FSM<T> intersectionMachine = unionMachine;
     intersectionMachine.set_final_states(newEndStates);
 
     return intersectionMachine;
 }
 
-std::ostream &fsm::FSM::ins(std::ostream &out) const {
+template <typename T>
+std::ostream &fsm::FSM<T>::ins(std::ostream &out) const {
     int stateC = get_states_count(), alphaC = get_alphabet_count();
     auto table = get_transition_table();
     fsm::State st;
@@ -356,8 +396,8 @@ std::ostream &fsm::FSM::ins(std::ostream &out) const {
     return out;
 }
 
-std::ostream& fsm::FSM::fins(std::ostream& out) const
-{   
+template <typename T>
+std::ostream& fsm::FSM<T>::fins(std::ostream& out) const {
     int stateC = get_states_count(), alphaC = get_alphabet_count(), endSC = get_final_states_count();
     fsm::State st;
 
@@ -392,8 +432,8 @@ std::ostream& fsm::FSM::fins(std::ostream& out) const
     return out;
 }
 
-std::istream& fsm::FSM::ext(std::istream& in)
-{
+template <typename T>
+std::istream& fsm::FSM<T>::ext(std::istream& in) {
     unsigned int stateCount, alphaCount, endStateCount;
     fsm::String stateName;
     char letter;
@@ -434,7 +474,7 @@ std::istream& fsm::FSM::ext(std::istream& in)
     std::cout << "\nEnter the starting state: ";
     in >> stateName;
     initial_state_ = states_[indexOfState(fsm::State(stateName))];
-    
+
     std::cout << "\nEnter the number of end-states: ";
     in >> endStateCount;
 
@@ -454,7 +494,8 @@ std::istream& fsm::FSM::ext(std::istream& in)
     return in;
 }
 
-std::ostream &fsm::operator<<(std::ostream &out, const fsm::FSM &rhs) {
+template <typename T>
+std::ostream &fsm::operator<<(std::ostream &out, const fsm::FSM<T> &rhs) {
     if (typeid(out) == typeid(std::ofstream)) {
         return rhs.fins(out);
     }
@@ -462,7 +503,13 @@ std::ostream &fsm::operator<<(std::ostream &out, const fsm::FSM &rhs) {
     return rhs.ins(out);
 }
 
-std::istream& fsm::operator>>(std::istream& in, fsm::FSM& rhs)
-{
+template <typename T>
+std::istream& fsm::operator>>(std::istream& in, fsm::FSM<T>& rhs) {
     return rhs.ext(in);
 }
+
+
+template class fsm::FSM<int>;
+template class fsm::FSM<char>;
+template std::ostream &fsm::operator<<(std::ostream &out, const fsm::FSM<int> &rhs);
+template std::ostream &fsm::operator<<(std::ostream &out, const fsm::FSM<char> &rhs);
